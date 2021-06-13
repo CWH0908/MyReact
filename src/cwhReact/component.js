@@ -1,4 +1,4 @@
-// 类组件的父类 Component
+// Component基类
 function Component (props){
   this.props = props; // 使其内部能够通过this.props访问
 }

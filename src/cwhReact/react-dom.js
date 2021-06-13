@@ -48,13 +48,13 @@ function updateFunctionCompinent(vnode) {
   return vnode2Node(vvnode);
 }
 
-// 函数组件
+// 类组件
 function updateClassCompinent(vnode) {
   const {
     type,
     props
   } = vnode
-  let instance = new type(props)
+  let instance = new type(props); // 类组件需要new出实例
   let vvnode = instance.render(); // 类组件在render函数中返回vnode
   // 使用vnode->node函数转换虚拟dom
   return vnode2Node(vvnode);
@@ -77,7 +77,7 @@ function reconcileChildren(parentNode, children) {
 
 // 添加属性
 function nodeAddAttribute(node, attrVal) {
-  // 排出里面的children属性
+  // 排除里面的children属性，将其余属性添加到当前节点
   Object.keys(attrVal).filter(k => k !== 'children').forEach(key => {
     node[key] = attrVal[key]
   })
