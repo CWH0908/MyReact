@@ -44,9 +44,9 @@ const vnode = (
     <h1>h1 - 文本</h1>
     <a href='https://www.baidu.com'>a - 链接</a>
 
-    {/* <FuncComponent name='function'/>
+    <FuncComponent name='function'/>
 
-    <ClassComponent name='class'/> */}
+    {/* <ClassComponent name='class'/> */}
   </div>
 );
 

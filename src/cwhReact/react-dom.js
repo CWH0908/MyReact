@@ -18,7 +18,7 @@ function vnode2Node(vnode) {
     node = updateHostComponent(vnode)
   } else if (typeof type === 'function') {
     // 对于vnode来说，类组件和函数组件都是以function的方式传入的，可以在Component基类的原型链上添加标识
-    node = type.prototype.isReactComponent ? updateClassCompinent(vnode) : updateFunctionCompinent(vnode);
+    node = type.prototype.isReactComponent ? updateClassComponent(vnode) : updateFunctionCompinent(vnode);
   } else {
     node = updateTextComponent(vnode)
   }
@@ -49,7 +49,7 @@ function updateFunctionCompinent(vnode) {
 }
 
 // 类组件
-function updateClassCompinent(vnode) {
+function updateClassComponent(vnode) {
   const {
     type,
     props

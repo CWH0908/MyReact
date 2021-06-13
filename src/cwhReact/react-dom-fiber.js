@@ -30,6 +30,12 @@ function performUnitOfWork(workInProgress) {
   if (typeof type === 'string') {
     // 原生标签
     updateHostComponent(workInProgress)
+  } else if (typeof type === 'function') {
+    // 函数组件
+    updateFunctionCompinent(workInProgress)
+  } else if (typeof type === 'undefined') {
+    // 文本组件
+    updateTextComponent(workInProgress)
   }
 
 
@@ -79,6 +85,11 @@ function commitWork(workInProgress) {
   }
 
   let parentNodeFiber = workInProgress.return; // 更新它的父节点
+
+  // 父fiber没有dom节点时，向上查找
+  while(!parentNodeFiber.stateNode){
+    parentNodeFiber = parentNodeFiber.return;
+  }
   let parentNode = parentNodeFiber.stateNode; // 通过父节点的stateNode定位到父级dom节点
   if (workInProgress.stateNode) {
     // 将当前fiber的stateNode，真实dom节点添加到父级dom节点上
@@ -126,7 +137,7 @@ function render(vnode, container) {
 //     node = updateHostComponent(vnode)
 //   } else if (typeof type === 'function') {
 //     // 对于vnode来说，类组件和函数组件都是以function的方式传入的，可以在Component基类的原型链上添加标识
-//     node = type.prototype.isReactComponent ? updateClassCompinent(vnode) : updateFunctionCompinent(vnode);
+//     node = type.prototype.isReactComponent ? updateClassComponent(vnode) : updateFunctionCompinent(vnode);
 //   } else {
 //     node = updateTextComponent(vnode)
 //   }
@@ -162,18 +173,19 @@ function updateHostComponent(workInProgress) {
 }
 
 // 函数组件
-function updateFunctionCompinent(vnode) {
+function updateFunctionCompinent(workInProgress) {
   const {
     type,
     props
-  } = vnode
+  } = workInProgress
   let vvnode = type(props); // 执行函数组件,使用其props参数，会得到其返回的vnode，此处为了不与入参重名，命名为vvnode
-  // 使用vnode->node函数转换虚拟dom
-  // return vnode2Node(vvnode);
+
+  // 将其 协调成fiber结构
+  reconcileChildren(workInProgress, vvnode)
 }
 
 // 类组件
-function updateClassCompinent(vnode) {
+function updateClassComponent(vnode) {
   const {
     type,
     props
@@ -185,9 +197,10 @@ function updateClassCompinent(vnode) {
 }
 
 // 文本标签
-function updateTextComponent(vnode) {
-  let node = document.createTextNode(vnode);
-  return node;
+function updateTextComponent(workInProgress) {
+  if(!workInProgress.stateNode){
+    workInProgress.stateNode =  document.createTextNode(workInProgress.props);
+  }
 }
 
 // 协调子节点，将子节点workInProgress也转变成fiber结构 
@@ -211,6 +224,11 @@ function reconcileChildren(workInProgress, children) {
       sibling: null,
       return: workInProgress
     }
+
+    if(typeof child === 'string'){
+      newFiber.props = child;
+    }
+
     // 把第一个生成的fiber当做workInProgress的child
     if (i === 0) {
       workInProgress.child = newFiber
@@ -226,12 +244,12 @@ function reconcileChildren(workInProgress, children) {
 // 添加属性
 function nodeAddAttribute(node, attrVal) {
   // children属性中存放着文本，也需要添加到当前节点（新加文本节点插入）
-  Object.keys(attrVal).forEach(key=>{
-    if(key === 'children'){
-      if(typeof attrVal[key] === 'string'){
+  Object.keys(attrVal).forEach(key => {
+    if (key === 'children') {
+      if (typeof attrVal[key] === 'string') {
         node.textContent = attrVal[key]
       }
-    }else{
+    } else {
       node[key] = attrVal[key]
     }
   })
